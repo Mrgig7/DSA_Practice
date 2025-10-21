@@ -1,40 +1,34 @@
 class Solution {
     public List<String> removeInvalidParentheses(String s) {
         List<String> res = new ArrayList<>();
-        if(s == null) return res;
-        Set<String> vis = new HashSet<>();
-        Queue<String> que = new LinkedList<>();
-        que.add(s);
-        vis.add(s);
-        boolean fnd = false;
-        while(!que.isEmpty()) {
-            String cur = que.poll();
-            if(isV(cur)) {
-                res.add(cur);
-                fnd = true;
-            }
-            if(fnd) continue;
-            for(int i = 0; i < cur.length(); i++) {
-                if(cur.charAt(i) != '(' && cur.charAt(i) != ')') continue;
-                String nxt = cur.substring(0, i) + cur.substring(i + 1);
-                if(!vis.contains(nxt)) {
-                    que.add(nxt);
-                    vis.add(nxt);
-                }
+        int lft = 0, rgt = 0;
+        
+        for(char c : s.toCharArray()) {
+            if(c == '(') lft++;
+            else if(c == ')') {
+                if(lft > 0) lft--;
+                else rgt++;
             }
         }
+        Set<String> set = new HashSet<>();
+        dfs(s, 0, lft, rgt, 0, new StringBuilder(), set);
+        res.addAll(set);
         return res;
     }
     
-    private boolean isV(String s) {
-        int cnt = 0;
-        for(char c : s.toCharArray()) {
-            if(c == '(') cnt++;
-            else if(c == ')') {
-                cnt--;
-                if(cnt < 0) return false;
-            }
+    private void dfs(String s, int idx, int lft, int rgt, int opn, StringBuilder sb, Set<String> set) {
+        if(idx == s.length()) {
+            if(lft == 0 && rgt == 0 && opn == 0) set.add(sb.toString());
+            return;
         }
-        return cnt == 0;
+        char c = s.charAt(idx);
+        int len = sb.length();
+        if(c == '(' && lft > 0) dfs(s, idx + 1, lft - 1, rgt, opn, sb, set);
+        if(c == ')' && rgt > 0) dfs(s, idx + 1, lft, rgt - 1, opn, sb, set);
+        sb.append(c);
+        if(c != '(' && c != ')') dfs(s, idx + 1, lft, rgt, opn, sb, set);
+        else if(c == '(') dfs(s, idx + 1, lft, rgt, opn + 1, sb, set);
+        else if(opn > 0) dfs(s, idx + 1, lft, rgt, opn - 1, sb, set);
+        sb.setLength(len);
     }
 }
